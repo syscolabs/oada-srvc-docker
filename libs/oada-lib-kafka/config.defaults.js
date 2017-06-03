@@ -1,4 +1,4 @@
-/* Copyright 2014 Open Ag Data Alliance
+/* Copyright 2017 Open Ag Data Alliance
  *
  * Licensed under the Apache License, Version 2.0 (the 'License');
  * you may not use this file except in compliance with the License.
@@ -18,20 +18,10 @@ var path = require('path');
 var fs = require('fs');
 
 module.exports = {
-
-  // By default, this checks for NODE_ENV===production 
-  // to determine if is production.  
-  // set to true to use the production database name
-  // and prevent init.cleanup() from being called.
-  isProduction: (process.env.NODE_ENV === 'production'),
-
 	kafka: {
-    topics: {
-      tokenRequest: 'token_request',
-      graphRequest: 'graph_request',
-      writeRequest: 'write_request',
-      httpResponse: 'http_response',
-    },
-		groupId: 'rev-graph-update'
-  },
+		broker: 'kafka',
+		auto_commit: false,
+		auto_offset_reset: 'latest'
+	},
+	debug: 'all'
 };
