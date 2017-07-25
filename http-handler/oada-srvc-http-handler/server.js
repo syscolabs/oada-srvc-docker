@@ -228,7 +228,10 @@ _server.app.get('/resources/*', function getResource(req, res, next) {
 
             doc = unflattenMeta(doc);
             info('doc unflattened now');
-            return res.json(doc);
+            return res
+                .set('X-OADA-Path', req.oadaGraph['path_leftover'])
+                .set('X-OADA-ResId', req.oadaGraph['resource_id'])
+                .json(doc)
         })
         .catch(next);
 });
@@ -289,24 +292,23 @@ _server.app.put('/resources/*', bodyParser.text({
 
 _server.app.put('/resources/*', function putResource(req, res, next) {
     info(`Saving PUT body for request ${req.id}`);
-    var bodyid = oadaLib.putBodies.savePutBody(req.body)
+    return oadaLib.putBodies.savePutBody(req.body)
         .tap(() => info(`PUT body saved for request ${req.id}`))
-        .get('_id');
-
-    return kafkaReq.send({
-        'connection_id': req.id,
-        'url': req.url,
-        'resource_id': req.oadaGraph['resource_id'],
-        'path_leftover': req.oadaGraph['path_leftover'],
-        'meta_id': req.oadaGraph['meta_id'],
-        'user_id': req.user.doc['user_id'],
-        'authorizationid': req.user.doc['authorizationid'],
-        'client_id': req.user.doc['client_id'],
-        'content_type': req.get('Content-Type'),
-        'bodyid': bodyid,
-        //body: req.body
-    }, config.get('kafka:topics:writeRequest'))
-    .tap(function checkWrite(resp) {
+        .get('_id')
+        .then((bodyid) => {
+            return kafkaReq.send({
+                'connection_id': req.id,
+                'url': req.url,
+                'resource_id': req.oadaGraph['resource_id'],
+                'path_leftover': req.oadaGraph['path_leftover'],
+                'meta_id': req.oadaGraph['meta_id'],
+                'user_id': req.user.doc['user_id'],
+                'authorizationid': req.user.doc['authorizationid'],
+                'client_id': req.user.doc['client_id'],
+                'content_type': req.get('Content-Type'),
+                'bodyid': bodyid,
+            }, config.get('kafka:topics:writeRequest'))
+    }).tap(function checkWrite(resp) {
         info(`Recieved write response for request ${req.id}`);
         switch (resp.code) {
             case 'success':
@@ -321,6 +323,8 @@ _server.app.put('/resources/*', function putResource(req, res, next) {
     })
     .then(function(resp) {
         return res
+            .set('X-OADA-Path', req.oadaGraph['path_leftover'])
+            .set('X-OADA-ResId', req.oadaGraph['resource_id'])
             .set('X-OADA-Rev', resp['_rev'])
             .location(req.url)
             .sendStatus(204);
