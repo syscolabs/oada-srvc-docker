@@ -229,8 +229,7 @@ _server.app.get('/resources/*', function getResource(req, res, next) {
             doc = unflattenMeta(doc);
             info('doc unflattened now');
             return res
-                .set('X-OADA-Path', req.oadaGraph['path_leftover'])
-                .set('X-OADA-ResId', req.oadaGraph['resource_id'])
+                .set('Content-Location', req.url)
                 .json(doc)
         })
         .catch(next);
@@ -323,8 +322,7 @@ _server.app.put('/resources/*', function putResource(req, res, next) {
     })
     .then(function(resp) {
         return res
-            .set('X-OADA-Path', req.oadaGraph['path_leftover'])
-            .set('X-OADA-ResId', req.oadaGraph['resource_id'])
+            .set('Content-Location', req.url)
             .set('X-OADA-Rev', resp['_rev'])
             .location(req.url)
             .sendStatus(204);
