@@ -198,6 +198,24 @@ services:
       - NODE_ENV=${NODE_ENV:-development}
       - DEBUG=${DEBUG:-""}
 
+  hyperledger-fabric:
+    depends_on:
+      - startup
+    build:
+      context: ./hyperledger-fabric
+    restart: always
+    container_name: hyperledger-fabric
+    networks:
+      - startup_net
+      - kafka_net
+      - arango_net
+    volumes:
+      - .:/code
+      - ./oada-srvc-docker-config.js:/oada-srvc-docker-config.js
+    environment:
+      - NODE_ENV=${NODE_ENV:-development}
+      - DEBUG=${DEBUG:-""}
+
   graph-lookup:
     depends_on:
       - startup
